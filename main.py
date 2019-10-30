@@ -55,8 +55,8 @@ class Human:
 
 class World:
     def __init__(self):
-        self.columns = 200
-        self.rows = 150
+        self.columns = 300
+        self.rows = 225
 
         self.elevations = []
         self.biomes = []
@@ -71,120 +71,58 @@ class World:
             self.elevations.append(row)
 
         self.minlandratio = 0.5
+        sradius = int((self.columns + self.rows) / 2 * random.randint(6, 14) / 10)
 
-        self.seed_of_seeds = [random.randint(int(self.columns / 4), int(3 * self.columns / 4)),
+        self.seed_of_seeds = [random.randint(int(self.columns / 3), int(2 * self.columns / 3)),
                               random.randint(int(2 * self.rows / 9), int(7 * self.rows / 9))]
-        MAXDISTANCE = (self.columns + self.rows) / 2 / 10
-        continentcount = random.randint(3, 8)
-        barrier = random.randint(20, 50)
-        self.master_seeds = []
-        self.all_seeds = []
-        self.all_spots = []
-        self.all_isles = []
+        self.elevations[self.seed_of_seeds[1]][self.seed_of_seeds[0]] += 4
+        print(self.seed_of_seeds)
 
-        print("*")
+        self.masterseeds = [self.seed_of_seeds]
+        self.seeds = []
+        self.allspots = []
 
-        for k in range(0, continentcount):
-            while len(self.master_seeds) < 5 * int(2 / continentcount + 1) * k:
-                x = int(max(0, self.seed_of_seeds[0] + MAXDISTANCE * random.randint(2, 13) / 10))
-                y = int(max(0, self.seed_of_seeds[1] + MAXDISTANCE * random.randint(2, 12) / 10))
-                sd = [min(x, self.columns - 1), min(y, self.rows - 1)]
+        for _ in range(0, 7):
+            self.masterseeds.append([max(30, min(self.columns - 30, int(self.seed_of_seeds[0] + random.randint(-sradius, sradius) / 1.5))),
+                                    max(30, min(self.rows - 30, int(self.seed_of_seeds[1] + random.randint(-sradius, sradius) / 1.5)))])
+            self.elevations[self.masterseeds[-1][1]][self.masterseeds[-1][0]] += 3
 
-                print(sd, [x, y])
-                if sd not in self.master_seeds and 30 < sd[0] < self.columns - 30 and 30 < sd[1] < self.rows - 30:
-                    self.master_seeds.append(sd)
-                    self.all_seeds.append(sd)
-                    self.all_spots.append(sd)
-                if len(self.master_seeds) > 5:
-                    break
-            self.elevations[self.seed_of_seeds[1]][self.seed_of_seeds[0]] += 2
-            rlc = [False, False]
-            if self.seed_of_seeds[0] < self.columns / 2:
-                pass
+        for ss in self.masterseeds:
+            for _ in range(0, 14):
+                self.seeds.append([max(0, min(self.columns - 1, int(ss[0] + random.randint(-sradius, sradius) / 3.4))),
+                                   max(0, min(self.rows - 1, int(ss[1] + random.randint(-sradius, sradius) / 3.4)))])
+            self.elevations[self.seeds[-1][1]][self.seeds[-1][0]] += 2
+            del self.seeds[random.randint(0, len(self.seeds) - 1)]
 
-        print("~~", self.master_seeds)
+        for ss in self.seeds:
+            if not 1 < ss[0] < self.columns - 2:
+                ss[0] = random.randint(5, self.columns - 6)
+            if not 1 < ss[1] < self.rows - 2:
+                ss[1] = random.randint(5, self.rows - 6)
 
-        for ss in self.master_seeds:
-            for _ in range(0, 5):
-                sd = [int(min(max(ss[0] + MAXDISTANCE * random.randint(1, 9) / 30, 0), self.columns - 1)),
-                      int(min(max(ss[1] + MAXDISTANCE * random.randint(1, 9) / 30, 0), self.rows - 1))]
-                if (get_distance(sd, self.seed_of_seeds) < MAXDISTANCE and random.randint(0, 1000) < barrier) or\
-                        random.randint(0, 1000) < 11 and sd != self.seed_of_seeds and 2 < sd[0] < self.columns - 2 and\
-                        2 < sd[1] < self.rows - 2:
-                    if random.randint(0, 17) < 1:
-                        barrier = random.randint(30, 60)
-                    self.all_seeds.append(sd)
-                    if sd not in self.all_spots:
-                        self.all_spots.append(sd)
-                    self.elevations[sd[1]][sd[0]] += 0.4
+        for ss in self.masterseeds:
+            self.seeds.append(ss)
 
-        print("**", self.all_spots)
-                    
-        # Expand continents
-        b = int((len(self.all_seeds) + MAXDISTANCE) * (self.columns * self.rows))
-        for i in range(0, b):
-            sd = random.choice(random.choice([self.all_seeds, self.all_spots, self.all_spots]))
-            # print("~%s/%s - %s" % (i, b, sd))
-
+        b = int((sradius + self.rows * self.columns) ** 1.3)
+        for i in range(0, int(b / 5)):
+            sde = random.choice(self.seeds)
+            sd = [sde[0], sde[1]]
             if 2 < sd[0] < self.columns - 3 and 2 < sd[1] < self.rows - 3:
-                sd[0] += random.choice([-2, -1, -1, 0, 1, 1, -2])
-                sd[1] += random.choice([-1, -1, -1, 0, 1, 1, 1])
+                print(i, int(b * 6 / 5))
+                sd[0] += random.choice([-2, -1, -1, 0, 0, 1, 1, 2])
+                sd[1] += random.choice([-2, -1, -1, 0, 0, 1, 1, 2])
+                self.allspots.append(sd)
+                self.elevations[sd[1]][sd[0]] += 0.5
 
-                print("!%s/%s - %s" % (i, b, sd))
-                i += 1
-                if random.randint(0, 100) < 85:
-                    self.elevations[sd[1] - 1][sd[0]] += random.randint(40, 80) / random.randint(90, 110)
-                if random.randint(0, 100) < 85:
-                    self.elevations[sd[1] + 1][sd[0]] += random.randint(40, 80) / random.randint(90, 110)
-                if random.randint(0, 100) < 85:
-                    self.elevations[sd[1]][sd[0] - 1] += random.randint(40, 80) / random.randint(90, 110)
-                if random.randint(0, 100) < 85:
-                    self.elevations[sd[1]][sd[0] + 1] += random.randint(40, 80) / random.randint(90, 110)
-                if random.randint(0, 100) < 75:
-                    self.elevations[sd[1] - 1][sd[0] - 1] += random.randint(20, 40) / random.randint(90, 110)
-                    self.elevations[sd[1] - 1][sd[0] + 1] += random.randint(20, 40) / random.randint(90, 110)
-                    self.elevations[sd[1] + 1][sd[0] - 1] += random.randint(20, 40) / random.randint(90, 110)
-                    self.elevations[sd[1] + 1][sd[0] + 1] += random.randint(20, 40) / random.randint(90, 110)
-
-                if sd in self.all_isles:
-                    self.elevations[sd[1]][sd[0]] *= 1.1
-                elif sd in self.all_seeds:
-                    self.elevations[sd[1]][sd[0]] -= 0.3
-
-                if random.randint(0, 100) < 85:
-                    self.elevations[random.randint(0, self.rows - 1)][
-                        random.randint(0, self.columns - 1)] *= random.randint(80, 100) / 100
-                    self.elevations[random.randint(0, self.rows - 1)][
-                        random.randint(0, self.columns - 1)] -= 0.1
-                if sd not in self.all_spots and 1 < sd[0] < self.columns - 2 and 1 < sd[1] < self.rows - 2:
-                    self.all_spots.append(sd)
-            else:
-                # print("*")
-                pass
-
-        abi = ""
-        for y in range(0, self.rows):
-            for x in range(0, self.columns):
-                abi += "|%s" % int(self.elevations[y][x])
-            abi += "|\n"
-        # print(abi)
-
-        for _ in range(0, 12 * int(MAXDISTANCE)):
-            spot = [random.randint(2, self.columns - 2), random.randint(2, self.rows - 2)]
-            if spot not in self.all_spots and spot not in self.all_isles:
-                self.all_isles.append(spot)
-                self.elevations[spot[1]][spot[0]] += random.choice([0.5, 1, 1])
-
-        for _ in range(0, int(len(self.all_isles) / 2)):
-            spot = random.choice(self.all_isles)
-            self.elevations[spot[1]][spot[0]] += random.choice([0.5, 1])
-
-        abi = ""
-        for y in range(0, self.rows):
-            for x in range(0, self.columns):
-                abi += "|%s" % int(self.elevations[y][x])
-            abi += "|\n"
-        # print(abi)
+        for i in range(0, b):
+            sde = random.choice(random.choice([self.allspots, self.allspots, self.allspots, self.seeds]))
+            sd = [sde[0], sde[1]]
+            if 2 < sd[0] < self.columns - 3 and 2 < sd[1] < self.rows - 3:
+                print(i + int(b / 5), int(b * 6 / 5))
+                sd[0] += random.choice([-2, -1, -1, 0, 0, 1, 1, 2])
+                sd[1] += random.choice([-2, -1, -1, 0, 0, 1, 1, 2])
+                self.allspots.append(sd)
+                self.elevations[sd[1]][sd[0]] += random.randint(30, 60) / 100
 
         self.view()
 
@@ -195,6 +133,7 @@ class World:
         viewing = True
 
         while viewing:
+            print("the ye")
             for e in pygame.event.get():
                 if e.type == pygame.QUIT:
                     sys.exit()
@@ -202,14 +141,23 @@ class World:
             for y in range(0, self.rows):
                 for x in range(0, self.columns):
                     tl = pygame.Surface((VIEWSCALE, VIEWSCALE))
-                    vl = self.elevations[y][x]
-                    color = (max(0, int(min(255, 255 * (vl / 11)))),
-                                 max(0, int(min(255, 100 * (vl / 11)))),
-                                 max(0, int(min(255, 255 * (vl / 11)))))
-                    try:
-                        tl.fill(color)
-                    except:
-                        print(color)
+                    vl = [x, y]
+                    if vl == self.seed_of_seeds:
+                        color = [255, 0, 255]
+                    elif vl in self.masterseeds:
+                        color = [255, 255, 255]
+                    elif vl in self.seeds:
+                        color = [255, 255, 0]
+                    elif vl in self.allspots:
+                        color = [255, 0, 0]
+                    else:
+                        if self.elevations[y][x] > 1:
+                            color = [0, 0, 255]
+                        else:
+                            color = [0, 0, 0]
+
+                    tl.fill(color)
+                    print("#", color)
                     self.scr.blit(tl, (x * VIEWSCALE, y * VIEWSCALE))
             pygame.display.flip()
 
