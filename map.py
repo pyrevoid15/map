@@ -18,6 +18,8 @@ class Map:
         self.tilecount = self.columns * self.rows
 
         self.elevations = []
+        self.rivers = []
+        self.peaks = []
         for _ in range(0, self.rows):
             row = []
             for _ in range(0, self.columns):
