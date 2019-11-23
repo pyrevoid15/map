@@ -5,7 +5,6 @@ import math
 import time
 import threading as thr
 
-
 VIEWSCALE = 1
 
 
@@ -13,6 +12,7 @@ def get_distance(startpoint, endpoint):
     return math.sqrt((startpoint[0] - endpoint[0]) ** 2 + (startpoint[1] - endpoint[1]) ** 2)
 
 
+# noinspection PyAttributeOutsideInit
 class Map:
     def __init__(self):
         self.columns = 40
@@ -33,7 +33,8 @@ class Map:
 
         self.seed()
         self.expand()
-        self.view()
+        if __name__ == '__main__':
+            self.view()
 
     def seed(self):
         if self.tilecount > 399:
@@ -108,7 +109,6 @@ class Map:
         print(abi)
         del abi
 
-
     def check_land(self, x, y):
         try:
             if self.elevations[y][x] > 1:
@@ -139,7 +139,6 @@ class Map:
             else:
                 return 2
 
-
     def checktile(self, board, x, y):
         try:
             return board[y][x]
@@ -165,7 +164,6 @@ class Map:
                 # print((x, y))
                 return 1
 
-
     def checklandlocked(self, x, y):
         if self.check_land(x - 1, y - 1) == 0 and self.check_land(x, y - 1) == 0 and self.check_land(x + 1,
                                                                                                      y - 1) == 0 and \
@@ -175,7 +173,6 @@ class Map:
             return True
         else:
             return False
-
 
     def checkwaterlocked(self, x, y):
         if self.check_land(x - 1, y - 1) != 0 and self.check_land(x, y - 1) != 0 and self.check_land(x + 1,
@@ -187,7 +184,6 @@ class Map:
         else:
             return False
 
-
     def checkcoastlocked(self, x, y):
         if self.check_land(x - 1, y - 1) > 0 and self.check_land(x, y - 1) > 0 and self.check_land(x + 1,
                                                                                                    y - 1) > 0 and \
@@ -197,7 +193,6 @@ class Map:
             return True
         else:
             return False
-
 
     def expand(self):
         print(int(((self.rows + self.columns) * 10.5) ** ((self.rows / 10) ** 0.6)))
@@ -272,13 +267,14 @@ class Map:
         for y in range(0, self.rows):
             for x in range(0, self.columns):
                 try:
-                    if self.elevations[y][x] > random.randint(35, 45) / 10 and\
+                    if self.elevations[y][x] > random.randint(35, 45) / 10 and \
                             self.elevations[y][x] > max(self.elevations[y - 1][x], self.elevations[y + 1][x],
                                                         self.elevations[x - 1][y], self.elevations[x + 1][y]):
                         self.peaks.append([x, y])
                         self.elevations[y][x] **= 1.4
                 except IndexError:
                     pass
+
                 if 1.6 < self.elevations[y][x] < 2.6:
                     self.elevations[y][x] **= 0.86
 
@@ -295,14 +291,19 @@ class Map:
                     else:
                         if p < random.choice([3, 4, 4, 2, 4, 4, 3, 4, 4]):
                             try:
-                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][int((x - x % 2) / 2) + 1]) / 20 * random.randint(8, 12))
+                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][
+                                    int((x - x % 2) / 2) + 1]) / 20 * random.randint(8, 12))
                             except IndexError:
-                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][0] / 10 * random.randint(8, 12)))
+                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][
+                                    0] / 10 * random.randint(8, 12)))
                         else:
                             try:
-                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][int((x - x % 2) / 2) + 1]) / 200 * random.randint(95, 105))
+                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][
+                                    int((x - x % 2) / 2) + 1]) / 200 * random.randint(95, 105))
                             except IndexError:
-                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][0]) / 100 * random.randint(95, 105))
+                                row.append(
+                                    (small_elev[y][int((x - x % 2) / 2)] +
+                                     small_elev[y][0]) / 100 * random.randint(95, 105))
                 fullrows.append(row)
 
             self.rows *= 2
@@ -314,12 +315,14 @@ class Map:
                     for x in range(0, self.columns):
                         if p < random.choice([3, 4, 4, 2, 4, 4, 3, 4, 4]):
                             try:
-                                vertavg = (fullrows[int((y - y % 2) / 2)][x] + fullrows[int((y - y % 2) / 2) + 1][x]) / 20 * random.randint(8, 12)
+                                vertavg = (fullrows[int((y - y % 2) / 2)][x] + fullrows[int((y - y % 2) / 2) + 1][
+                                    x]) / 20 * random.randint(8, 12)
                             except IndexError:
                                 vertavg = fullrows[int((y - y % 2) / 2)][x] / 10 * random.randint(8, 12)
                         else:
                             try:
-                                vertavg = (fullrows[int((y - y % 2) / 2)][x] + fullrows[int((y - y % 2) / 2) + 1][x]) / 200 * random.randint(95, 105)
+                                vertavg = (fullrows[int((y - y % 2) / 2)][x] + fullrows[int((y - y % 2) / 2) + 1][
+                                    x]) / 200 * random.randint(95, 105)
                             except IndexError:
                                 vertavg = fullrows[int((y - y % 2) / 2)][x] / 100 * random.randint(95, 105)
 
@@ -330,7 +333,8 @@ class Map:
             for y in range(1, int(self.rows - 1)):
                 for x in range(1, int(self.columns - 1)):
                     self.elevations[y][x] = (self.elevations[y][x - 1] + self.elevations[y][x + 1] +
-                                             self.elevations[y - 1][x] + self.elevations[y + 1][x]) / random.randint(38, 42) * 10
+                                             self.elevations[y - 1][x] +
+                                             self.elevations[y + 1][x]) / random.randint(38, 42) * 10
 
         for y in range(0, self.rows):
             for x in range(0, self.columns):
@@ -401,13 +405,14 @@ class Map:
                 loca[0] += random.randint(1, 6) * random.choice([-1, 1])
                 loca[1] += random.randint(1, 6) * random.choice([-1, 1])
 
-                if not([loca[0] - 1, loca[1] - 1] in self.rivers or [loca[0] - 1, loca[1]] in self.rivers or
+                if not ([loca[0] - 1, loca[1] - 1] in self.rivers or [loca[0] - 1, loca[1]] in self.rivers or
                         [loca[0] - 1, loca[1] + 1] in self.rivers or [loca[0], loca[1] - 1] in self.rivers or
                         [loca[0], loca[1] + 1] in self.rivers or [loca[0] + 1, loca[1] + 1] in self.rivers or
-                        [loca[0] + 1, loca[1] - 1] in self.rivers or [loca[0] + 1, loca[1]] in self.rivers) and\
+                        [loca[0] + 1, loca[1] - 1] in self.rivers or [loca[0] + 1, loca[1]] in self.rivers) and \
                         loca not in self.sources:
                     try:
-                        if self.elevations[loca[1]][loca[0]] > 2 and 0 < loca[0] < self.columns and 0 < loca[1] < self.rows:
+                        if self.elevations[loca[1]][loca[0]] > 2 and\
+                                0 < loca[0] < self.columns and 0 < loca[1] < self.rows:
                             self.rivers.append([loca[0], loca[1]])
                             self.sources.append([loca[0], loca[1]])
 
@@ -421,14 +426,18 @@ class Map:
 
             flow = self.loca
             x = [0, 0]
-            print("&", flow, "---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---")
+            print("&", flow,
+                  "---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---")
             prevflow = []
             amo = 0
-            while amo < 400:
+            while amo < 250:
                 try:
-                    all_adj = [self.elevations[flow[1] - 1][flow[0] - 1], self.elevations[flow[1] - 1][flow[0]], self.elevations[flow[1] - 1][flow[0] + 1],
-                               self.elevations[flow[1]][flow[0] - 1], self.elevations[flow[1]][flow[0]], self.elevations[flow[1]][flow[0] + 1],
-                               self.elevations[flow[1] + 1][flow[0] - 1], self.elevations[flow[1] + 1][flow[0]], self.elevations[flow[1] + 1][flow[0] + 1]]
+                    all_adj = [self.elevations[flow[1] - 1][flow[0] - 1], self.elevations[flow[1] - 1][flow[0]],
+                               self.elevations[flow[1] - 1][flow[0] + 1],
+                               self.elevations[flow[1]][flow[0] - 1], self.elevations[flow[1]][flow[0]],
+                               self.elevations[flow[1]][flow[0] + 1],
+                               self.elevations[flow[1] + 1][flow[0] - 1], self.elevations[flow[1] + 1][flow[0]],
+                               self.elevations[flow[1] + 1][flow[0] + 1]]
                     for c, a in enumerate(all_adj):
                         p = [int(c % 3) - 1 + flow[0], int(c / 3) - 1 + flow[1]]
                         if a <= min(all_adj) + 0.15:
@@ -483,8 +492,10 @@ class Map:
                         amp = 0
                         while amp < 30:
                             flow = a
-                            self.elevations[(flow[1] + random.choice([-1, 1])) % self.rows][(flow[0] + random.choice([-1, 1])) % self.columns] -= 0.004
-                            if self.elevations[a[1]][a[0]] < self.elevations[flow[1]][flow[0]] and x == flow and a not in prevflow:
+                            self.elevations[(flow[1] + random.choice([-1, 1])) % self.rows][
+                                (flow[0] + random.choice([-1, 1])) % self.columns] -= 0.004
+                            if self.elevations[a[1]][a[0]] < self.elevations[flow[1]][
+                                flow[0]] and x == flow and a not in prevflow:
                                 prevflow.append(flow)
                                 if flow in self.sources:
                                     self.rivers.remove(flow)
@@ -494,7 +505,7 @@ class Map:
                                 self.rivers.append(flow)
                                 break
                             else:
-                                a = [flow[0] + random .randint(-1, 1), flow[1] + random.randint(-1, 1)]
+                                a = [flow[0] + random.randint(-1, 1), flow[1] + random.randint(-1, 1)]
                                 amp += 1
                                 continue
 
@@ -551,16 +562,9 @@ class Map:
                 pygame.event.get()
                 el = self.elevations[y][x]
                 if [x, y] in self.rivers:
-                    if [x, y] in self.sources:
-                        color = [0, 255, 255]
-                    else:
-                        color = [0, 0, 255]
+                    color = [0, 0, 255]
                 elif el > 1:
-                    if [x, y] in self.peaks:
-                        color = [255, 0, 255]
-                        print([x, y])
-                    else:
-                        color = [max(0, min(255, int(el / 11 * 255))), 0, 0]
+                    color = [max(0, min(255, int(el / 11 * 255))), 0, 0]
                 else:
                     color = [0, 0, 255]
 
