@@ -33,6 +33,29 @@ class Map:
 
         self.seed()
         self.expand()
+
+        self.hydrations = []
+        self.temperatures = []
+        self.fertilities = []
+        self.biomes = []
+        for _ in range(0, self.rows):
+            row = []
+            row2 = []
+            row3 = []
+            row4 = []
+            row5 = []
+            for _ in range(0, self.columns):
+                row.append(0)
+                row2.append(0)
+                row3.append(0)
+                row4.append(0)
+                row5.append("none")
+            self.temperatures.append(row4)
+            self.hydrations.append(row2)
+            self.fertilities.append(row3)
+            self.biomes.append(row5)
+
+        self.ecolyze()
         if __name__ == '__main__':
             self.view()
 
@@ -397,6 +420,36 @@ class Map:
                 if self.elevations[p[1]][p[0]] > 0:
                     self.elevations[p[1]][p[0]] **= 1.3
 
+        for y in range(0, self.rows):
+            for x in range(0, self.columns):
+                if self.elevations[y][x] < 1:
+                    self.elevations[y][x] = 1 - self.elevations[y][x]
+
+        abi = ''
+        for n, row in enumerate(self.elevations):
+            abi += '|'
+            print(n)
+            for n2, tile in enumerate(row):
+                if tile > 1:
+                    if int(tile) < 9:
+                        abi += str(int(tile)) + '|'
+                    else:
+                        try:
+                            if (self.elevations[n][n2 - 1] > 8.7 and self.elevations[n][n2 + 1] > 8.7) or \
+                                    (self.elevations[n - 1][n2] > 8.7 and self.elevations[n + 1][n2] > 8.7):
+                                abi += '_|'
+                            else:
+                                abi += '!|'
+                        except IndexError:
+                            abi += str(int(tile)) + '|'
+                else:
+                    abi += '_|'
+            abi += '\n'
+
+        print(abi)
+        del islandcount, islands, abi
+
+    def ecolyze(self):
         self.sources = []
         for _ in range(0, int(random.randint(4, 9) / 100 * self.tilecount)):
             loca = [0, 0]
@@ -411,7 +464,7 @@ class Map:
                         [loca[0] + 1, loca[1] - 1] in self.rivers or [loca[0] + 1, loca[1]] in self.rivers) and \
                         loca not in self.sources:
                     try:
-                        if self.elevations[loca[1]][loca[0]] > 2 and\
+                        if self.elevations[loca[1]][loca[0]] > 2 and \
                                 0 < loca[0] < self.columns and 0 < loca[1] < self.rows:
                             self.rivers.append([loca[0], loca[1]])
                             self.sources.append([loca[0], loca[1]])
@@ -494,8 +547,8 @@ class Map:
                             flow = a
                             self.elevations[(flow[1] + random.choice([-1, 1])) % self.rows][
                                 (flow[0] + random.choice([-1, 1])) % self.columns] -= 0.004
-                            if self.elevations[a[1]][a[0]] < self.elevations[flow[1]][
-                                flow[0]] and x == flow and a not in prevflow:
+                            if self.elevations[a[1]][a[0]] < self.elevations[flow[1]][flow[0]] and \
+                                    x == flow and a not in prevflow:
                                 prevflow.append(flow)
                                 if flow in self.sources:
                                     self.rivers.remove(flow)
@@ -519,32 +572,116 @@ class Map:
                     flow[1] %= self.rows
             print("$")
         print("$$$")
+        print(sorted(self.rivers))
 
-        abi = ''
-        for n, row in enumerate(self.elevations):
-            abi += '|'
-            print(n)
-            for n2, tile in enumerate(row):
-                if [n2, n] in self.rivers:
-                    abi += 'v|'
-                elif tile > 1:
-                    if int(tile) < 9:
-                        abi += str(int(tile)) + '|'
-                    else:
-                        try:
-                            if (self.elevations[n][n2 - 1] > 8.7 and self.elevations[n][n2 + 1] > 8.7) or \
-                                    (self.elevations[n - 1][n2] > 8.7 and self.elevations[n + 1][n2] > 8.7):
-                                abi += '_|'
-                            else:
-                                abi += '!|'
-                        except IndexError:
-                            abi += str(int(tile)) + '|'
+        self.rivers = sorted(self.rivers)
+
+        donea = []
+        for [x, y] in self.rivers:
+            if [x, y] not in donea:
+                donea.append([x, y])
+                print("-+-", [x, y])
+                self.hydrations[y][x] = 2
+                for j in range(-50, 50):
+                    for i in range(-50, 50):
+                        if self.hydrations[(y + j) % self.rows][(x + i) % self.columns] < 1:
+                            try:
+                                self.hydrations[(y + j) % self.rows][(x + i) % self.columns] += 1 / (get_distance([x, y], [x + i, y + j]) ** (random.randint(30, 40) / random.randint(9, 14)))
+                            except ZeroDivisionError:
+                                pass
+        del donea
+
+        for y in range(0, self.rows):
+            for x in range(0, self.columns):
+                if self.elevations[y][x] < 1:
+                    self.hydrations[y][x] = 2
+                elif self.hydrations[y][x] > 2:
+                    self.hydrations[y][x] = 2
                 else:
-                    abi += '_|'
-            abi += '\n'
+                    self.hydrations[y][x] += 1 / (self.elevations[y][x] - 1) / 9
 
-        print(abi)
-        del islandcount, islands, abi, self.loca
+        for y in range(0, self.rows):
+            for x in range(0, self.columns):
+                distance = abs(self.rows / 2 - y) / self.rows
+                if self.elevations[y][x] < 0:
+                    albedo = 0.9
+                elif self.elevations[y][x] < 1:
+                    albedo = 1.2
+                else:
+                    albedo = (random.randint(14, 17) / 10) * 2 * self.elevations[y][x] * random.randint(990, 1110) / 1000
+
+                temp = (-12 * distance + 5 + 2 / albedo) * 1.23
+
+                if temp > 10:
+                    temp = 10
+                self.temperatures[y][x] = temp + 1
+
+        ye = 0
+        for y in range(0, self.rows):
+            for x in range(0, self.columns):
+                if self.elevations[y][x] > 1:
+                    ye += 1
+        ye /= self.tilecount
+
+        self.bioseeds = []
+        print("+-+-")
+        for _ in range(0, int(ye * self.rows / 1.6)):
+            a = []
+            while True:
+                a = [random.randint(0, self.columns - 1), random.randint(0, self.rows - 1)]
+                if self.elevations[a[1]][a[0]] > 1:
+                    break
+            self.bioseeds.append(a)
+
+        for b in sorted(self.bioseeds):
+            print(b)
+            if (0.3 < self.hydrations[b[1]][b[0]] < 1.9 and random.randint(0, 100) < 78) or random.randint(0, 100) < 45:
+                t = 'forest'
+            else:
+                t = 'grass'
+
+            strength = random.randint(30, 100) / 100
+            for y in range(-int(self.maxseeddistance / random.randint(13, 17) * strength),
+                           int(self.maxseeddistance / random.randint(13, 17) * strength)):
+                for x in range(-int(self.maxseeddistance / random.randint(13, 17) * strength),
+                               int(self.maxseeddistance / random.randint(13, 17) * strength)):
+                    a = [b[0] + x, b[1] + y]
+                    if (self.biomes[a[1] % self.rows][a[0] % self.columns] == 'none' and random.randint(0, 100) < 85) or\
+                            random.randint(0, 100) < 20:
+                        self.biomes[a[1] % self.rows][a[0] % self.columns] = t
+
+        for y in range(0, self.rows):
+            for x in range(0, self.columns):
+                if self.biomes[y][x] == 'none':
+                    self.biomes[y][x] = 'grass'
+
+        for y in range(0, self.rows):
+            print(y)
+            for x in range(0, self.columns):
+                if self.elevations[y][x] < 0.5:
+                    self.biomes[y][x] = 'ocean'
+                elif self.elevations[y][x] < 1:
+                    self.biomes[y][x] = 'coast'
+                elif (self.hydrations[y][x] == 2 and self.elevations[y][x] > 1) or [x, y] in self.rivers:
+                    self.biomes[y][x] = 'river'
+                elif self.elevations[y][x] < 1.35 and self.hydrations[y][x] > 1.5:
+                    self.biomes[y][x] = 'swamp'
+                elif not self.checkcoastlocked(x, y) and self.elevations[y][x] < 1.2:
+                    self.biomes[y][x] = 'beach'
+
+                if self.elevations[y][x] > random.randint(42, 50) / 10 and self.biomes[y][x] == 'forest':
+                    self.biomes[y][x] = 'grass'
+
+                if self.biomes[y][x] == 'forest':
+                    if self.temperatures[y][x] < random.randint(9, 23) / 10:
+                        self.biomes[y][x] = 'taiga'
+                    elif self.temperatures[y][x] > random.randint(40, 55) / 10 and self.hydrations[y][x] > 0.85:
+                        self.biomes[y][x] = 'rainforest'
+                elif self.biomes[y][x] == 'grass':
+                    if self.temperatures[y][x] < random.randint(5, 16) / 10:
+                        self.biomes[y][x] = 'tundra'
+                    elif random.randint(37, 50) / 10 < self.temperatures[y][x] and self.hydrations[y][x] < 0.2:
+                        self.biomes[y][x] = 'desert'
 
     def view(self):
         self.scr = pygame.display.set_mode((int(self.columns * VIEWSCALE), int(self.rows * VIEWSCALE)))
@@ -556,14 +693,14 @@ class Map:
         self.drivf = []
 
         for y in range(0, int(len(self.elevations))):
+            print(y)
             for x in range(0, int(len(self.elevations[0]))):
                 a = pygame.Surface((VIEWSCALE, VIEWSCALE))
                 self.drivf = pygame.mouse.get_pos()
+
                 pygame.event.get()
                 el = self.elevations[y][x]
-                if [x, y] in self.rivers:
-                    color = [0, 0, 255]
-                elif el > 1:
+                if el > 1:
                     color = [max(0, min(255, int(el / 11 * 255))), 0, 0]
                 else:
                     color = [0, 0, 255]
@@ -577,6 +714,93 @@ class Map:
             for e in pygame.event.get():
                 if e.type == pygame.QUIT:
                     sys.exit()
+                elif e.type == pygame.KEYDOWN:
+                    if 4 >= slider >= 0:
+                        if e.key == pygame.K_LEFT and 0 < slider:
+                            slider -= 1
+                        elif e.key == pygame.K_RIGHT and slider < 4:
+                            slider += 1
+
+                        if slider == 0:
+                            for y in range(0, int(len(self.elevations))):
+                                for x in range(0, int(len(self.elevations[0]))):
+                                    a = pygame.Surface((VIEWSCALE, VIEWSCALE))
+                                    self.drivf = pygame.mouse.get_pos()
+                                    pygame.event.get()
+                                    el = self.elevations[y][x]
+                                    if el > 1:
+                                        color = [max(0, min(255, int(el / 11 * 255))), 0, 0]
+                                    else:
+                                        color = [0, 0, 255]
+
+                                    a.fill(color)
+                                    self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
+                        elif slider == 1:
+                            for y in range(0, self.rows):
+                                for x in range(0, self.columns):
+                                    a = pygame.Surface((VIEWSCALE, VIEWSCALE))
+                                    pygame.event.get()
+                                    el = self.hydrations[y][x]
+                                    if 0 < el < 1:
+                                        color = [max(0, min(255, int(el / 1 * 255))), 0, 0]
+                                    elif el > 1:
+                                        color = [max(0, min(255, int((el - 1) / 1 * 255))), 0, 0]
+                                    else:
+                                        color = [0, 0, 0]
+
+                                    a.fill(color)
+                                    self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
+                        elif slider == 2:
+                            for y in range(0, self.rows):
+                                for x in range(0, self.columns):
+                                    a = pygame.Surface((VIEWSCALE, VIEWSCALE))
+                                    pygame.event.get()
+                                    el = self.temperatures[y][x]
+                                    if el != 0:
+                                        multiplier = 255 / 3
+                                        color = ((min(255, max(multiplier * (-(el - 9) ** 2 / 3 + 3), 0)),
+                                                  min(255, max(multiplier * (-(el - 6) ** 2 / 3 + 3), 0)),
+                                                  min(255, max(multiplier * (-(el - 3) ** 2 / 3 + 3), 0))))
+                                    else:
+                                        color = [0, 0, 0]
+
+                                    a.fill(color)
+                                    self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
+                        elif slider == 3:
+                            for y in range(0, self.rows):
+                                for x in range(0, self.columns):
+                                    a = pygame.Surface((VIEWSCALE, VIEWSCALE))
+                                    pygame.event.get()
+                                    el = self.biomes[y][x]
+                                    if el == 'ocean':
+                                        color = (0, 0, 255)
+                                    elif el == 'coast':
+                                        color = (0, 70, 200)
+                                    elif el == 'beach':
+                                        color = (200, 200, 0)
+                                    elif el == 'swamp':
+                                        color = (10, 80, 60)
+                                    elif el == 'grass':
+                                        color = (30, 200, 40)
+                                    elif el == 'mountain':
+                                        color = (150, 150, 150)
+                                    elif el == 'river':
+                                        color = (0, 0, 255)
+                                    elif el == 'forest':
+                                        color = (10, 60, 10)
+                                    elif el == 'tundra':
+                                        color = (255, 255, 255)
+                                    elif el == 'taiga':
+                                        color = (170, 255, 200)
+                                    elif el == 'desert':
+                                        color = (150, 200, 30)
+                                    elif el == 'rainforest':
+                                        color = (10, 60, 0)
+                                    else:
+                                        color = [0, 0, 0]
+
+                                    a.fill(color)
+                                    self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
 
             pygame.display.set_caption(str(((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE,
                                             (self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)) +
