@@ -18,6 +18,7 @@ class Map:
         self.columns = 40
         self.rows = 40
         self.tilecount = self.columns * self.rows
+        self.progress = 0
 
         self.elevations = []
         self.rivers = []
@@ -29,7 +30,7 @@ class Map:
             self.elevations.append(row)
 
         print(random.getstate()[0])
-        random.seed(11111111111)
+        random.seed(22222222222)
 
         self.seed()
         self.expand()
@@ -586,7 +587,7 @@ class Map:
                     for i in range(-50, 50):
                         if self.hydrations[(y + j) % self.rows][(x + i) % self.columns] < 1:
                             try:
-                                self.hydrations[(y + j) % self.rows][(x + i) % self.columns] += 1 / (get_distance([x, y], [x + i, y + j]) ** (random.randint(30, 40) / random.randint(9, 14)))
+                                self.hydrations[(y + j) % self.rows][(x + i) % self.columns] += 1 / (get_distance([x, y], [x + i, y + j]) ** (random.randint(20, 33) / random.randint(9, 17)))
                             except ZeroDivisionError:
                                 pass
         del donea
@@ -683,6 +684,45 @@ class Map:
                     elif random.randint(37, 50) / 10 < self.temperatures[y][x] and self.hydrations[y][x] < 0.2:
                         self.biomes[y][x] = 'desert'
 
+                if (self.biomes[y][x] == 'grass' or self.biomes[y][x] == 'desert' or self.biomes[y][x] == 'tundra') and\
+                        self.elevations[y][x] > 5.5:
+                    self.biomes[y][x] = 'mountain'
+
+        for y in range(0, self.rows):
+            print(y)
+            row = []
+            for x in range(0, self.columns):
+                if self.elevations[y][x] < 0.5:
+                    fert = 0
+                elif self.elevations[y][x] < 1:
+                    fert = 0.9
+                elif self.elevations[y][x] > 4.5:
+                    fert = -(4.5 / self.elevations[y][x]) * 2
+                else:
+                    if self.biomes[y][x] == 'swamp' or self.biomes[y][x] == 'beach':
+                        fert = 0.2
+                    elif self.biomes[y][x] == 'river':
+                        fert = 0.7
+                    elif self.biomes[y][x] == 'desert':
+                        fert = 0.1
+                    else:
+                        fert = random.randint(60, 80) / random.randint(95, 120)
+
+                if 0.5 < self.temperatures[y][x] < 5 and self.biomes[y][x] != 'desert':
+                    fert *= (self.hydrations[y][x] / 3 + 1) * (self.temperatures[y][x] / 3 + 0.1) * random.randint(90, 110) / 100
+                else:
+                    fert *= (self.hydrations[y][x] / 3 + 1) * random.randint(90, 110) / 100
+                row.append(fert)
+            self.fertilities[y] = row
+
+        for p in range(0, 2):
+            for y in range(1, int(self.rows - 1)):
+                for x in range(1, int(self.columns - 1)):
+                    if 5.1 > self.elevations[y][x] > 0.55:
+                        self.fertilities[y][x] = (self.fertilities[y][x - 1] + self.fertilities[y][x + 1] +
+                                                  self.fertilities[y - 1][x] +
+                                                  self.fertilities[y + 1][x]) / random.randint(36, 44) * 10
+
     def view(self):
         self.scr = pygame.display.set_mode((int(self.columns * VIEWSCALE), int(self.rows * VIEWSCALE)))
         pygame.init()
@@ -742,9 +782,9 @@ class Map:
                                     pygame.event.get()
                                     el = self.hydrations[y][x]
                                     if 0 < el < 1:
-                                        color = [max(0, min(255, int(el / 1 * 255))), 0, 0]
+                                        color = [0, 0, max(0, min(255, int(el / 1 * 255)))]
                                     elif el > 1:
-                                        color = [max(0, min(255, int((el - 1) / 1 * 255))), 0, 0]
+                                        color = [0, 0, max(0, min(255, int((el - 1) / 1 * 255)))]
                                     else:
                                         color = [0, 0, 0]
 
@@ -801,10 +841,37 @@ class Map:
 
                                     a.fill(color)
                                     self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
+                        elif slider == 4:
+                            for y in range(0, self.rows):
+                                for x in range(0, self.columns):
+                                    a = pygame.Surface((VIEWSCALE, VIEWSCALE))
+                                    pygame.event.get()
+                                    el = self.fertilities[y][x]
+                                    if el > 0:
+                                        color = [0, min(255, (el + 3) / 6 * 255), 0]
+                                    else:
+                                        print([x, y])
+                                        color = [0, 0, 0]
+
+                                    a.fill(color)
+                                    self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
+
+            if slider == 0:
+                subject = self.elevations
+            elif slider == 1:
+                subject = self.hydrations
+            elif slider == 2:
+                subject = self.temperatures
+            elif slider == 3:
+                subject = self.biomes
+            elif slider == 4:
+                subject = self.fertilities
+            elif slider == 5:
+                subject = [[0, 0]]
 
             pygame.display.set_caption(str(((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE,
                                             (self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)) +
-                                       str(self.elevations[int((self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)]
+                                       str(subject[int((self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)]
                                            [int((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE)]))
             pygame.display.flip()
             time.sleep(0.1)
