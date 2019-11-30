@@ -237,16 +237,18 @@ class Map:
             self.elevations[spot[1]][spot[0]] += 0.4
             if random.randint(0, 100) < 82:
                 if random.randint(0, 100) < 78:
-                    if 0 < spot[0]:
+                    self.elevations[spot[1] % self.rows][(spot[0] - 1) % self.columns] += 0.06 / max(1, self.tilecount / 11000)
+                    '''if 0 < spot[0]:
                         self.elevations[spot[1]][spot[0] - 1] += 0.06 / max(1, self.tilecount / 11000)
                     else:
-                        self.elevations[spot[1]][self.columns - 1] += 0.06 / max(1, self.tilecount / 11000)
+                        self.elevations[spot[1]][self.columns - 1] += 0.06 / max(1, self.tilecount / 11000)'''
 
                 if random.randint(0, 100) < 78:
-                    if spot[0] < self.columns - 1:
+                    self.elevations[spot[1] % self.rows][(spot[0] + 1) % self.columns] += 0.06 / max(1, self.tilecount / 11000)
+                    '''if spot[0] < self.columns - 1:
                         self.elevations[spot[1]][spot[0] + 1] += 0.06 / max(1, self.tilecount / 11000)
                     else:
-                        self.elevations[spot[1]][0] += 0.06 / max(1, self.tilecount / 11000)
+                        self.elevations[spot[1]][0] += 0.06 / max(1, self.tilecount / 11000)'''
 
                 if 0 < spot[1] and random.randint(0, 100) < 78:
                     self.elevations[spot[1] - 1][spot[0]] += 0.06 / max(1, self.tilecount / 9500)
@@ -315,8 +317,7 @@ class Map:
                     else:
                         if p < random.choice([3, 4, 4, 2, 4, 4, 3, 4, 4]):
                             try:
-                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][
-                                    int((x - x % 2) / 2) + 1]) / 20 * random.randint(8, 12))
+                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][int((x - x % 2) / 2) + 1]) / 20 * random.randint(8, 12))
                             except IndexError:
                                 row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][
                                     0] / 10 * random.randint(8, 12)))
@@ -355,8 +356,9 @@ class Map:
 
         for p in range(0, 2):
             for y in range(1, int(self.rows - 1)):
-                for x in range(1, int(self.columns - 1)):
-                    self.elevations[y][x] = (self.elevations[y][x - 1] + self.elevations[y][x + 1] +
+                for x in range(0, self.columns):
+                    self.elevations[y][x] = (self.elevations[y][(x - 1) % self.columns] +
+                                             self.elevations[y][(x + 1) % self.columns] +
                                              self.elevations[y - 1][x] +
                                              self.elevations[y + 1][x]) / random.randint(38, 42) * 10
 
@@ -392,8 +394,10 @@ class Map:
                                     tile **= 1.1
                             else:
                                 try:
-                                    if (self.elevations[n][n2 - 1] > 8.7 and self.elevations[n][n2 + 1] > 8.7) or \
-                                            (self.elevations[n - 1][n2] > 8.7 and self.elevations[n + 1][n2] > 8.7):
+                                    if (self.elevations[n][(n2 - 1) % self.columns] > 8.7 and
+                                        self.elevations[n][(n2 + 1) % self.columns] > 8.7) or \
+                                            (self.elevations[max(0, n - 1)][n2] > 8.7 and
+                                             self.elevations[min(self.rows - 1, n + 1)][n2] > 8.7):
                                         pass
                                 except IndexError:
                                     tile = random.randint(7, 9)
@@ -587,9 +591,10 @@ class Map:
                     for i in range(-50, 50):
                         if self.hydrations[(y + j) % self.rows][(x + i) % self.columns] < 1:
                             try:
-                                self.hydrations[(y + j) % self.rows][(x + i) % self.columns] += 1 / (get_distance([x, y], [x + i, y + j]) ** (random.randint(20, 33) / random.randint(9, 17)))
+                                self.hydrations[(y + j) % self.rows][(x + i) % self.columns] += 1 / (get_distance([x, y], [x + i, y + j]) ** (random.randint(23, 40) / random.randint(9, 17)))
                             except ZeroDivisionError:
                                 pass
+
         del donea
 
         for y in range(0, self.rows):
@@ -636,7 +641,7 @@ class Map:
 
         for b in sorted(self.bioseeds):
             print(b)
-            if (0.3 < self.hydrations[b[1]][b[0]] < 1.9 and random.randint(0, 100) < 78) or random.randint(0, 100) < 45:
+            if (0.6 < self.hydrations[b[1]][b[0]] < 1.9 and random.randint(0, 100) < 75) or random.randint(0, 100) < 30:
                 t = 'forest'
             else:
                 t = 'grass'
@@ -665,54 +670,129 @@ class Map:
                     self.biomes[y][x] = 'coast'
                 elif (self.hydrations[y][x] == 2 and self.elevations[y][x] > 1) or [x, y] in self.rivers:
                     self.biomes[y][x] = 'river'
-                elif self.elevations[y][x] < 1.35 and self.hydrations[y][x] > 1.5:
+                    if self.hydrations[y][x] > 2.1:
+                        cc = 0
+                        ac = 0
+                        for c in range(0, 9):
+                            f = [(x - 1 + c % 3) % self.columns, (y - 1 + int(c / 3)) % self.rows]
+                            if self.biomes[f[1]][f[0]] == 'river':
+                                cc += 1
+                            elif self.biomes[f[1]][f[0]] == 'lake':
+                                ac += 1
+                            elif self.biomes[f[1]][f[0]] == 'coast':
+                                cc = 0
+                                ac = 0
+                                break
+
+                        if ((cc == 0 or 1) and (ac == 0 or 1)):
+                            self.biomes[y][x] = 'lake'
+                        elif ac > 2 and cc > 4 and ac + cc > 6:
+                            self.biomes[y][x] = 'lake'
+                        elif ac > 3 and cc > 0:
+                            self.biomes[y][x] = 'lake'
+                        elif self.hydrations[y][x] > 2.3 and self.biomes[y][x] == 'river' and cc + ac > 2:
+                            self.biomes[y][x] = 'lake'
+
+                        if self.hydrations[y][x] > 2.7:
+                            self.biomes[y][x] = 'lake'
+                elif self.elevations[y][x] < 1.36 and self.hydrations[y][x] > 1.5:
                     self.biomes[y][x] = 'swamp'
-                elif not self.checkcoastlocked(x, y) and self.elevations[y][x] < 1.2:
+                elif (not self.checkcoastlocked(x, y) and (not self.checklandlocked(x, y) or random.randint(0, 100) < 38)) and\
+                        self.elevations[y][x] < 1.2 and self.hydrations[y][x] < 1.5:
                     self.biomes[y][x] = 'beach'
 
                 if self.elevations[y][x] > random.randint(42, 50) / 10 and self.biomes[y][x] == 'forest':
                     self.biomes[y][x] = 'grass'
 
                 if self.biomes[y][x] == 'forest':
-                    if self.temperatures[y][x] < random.randint(9, 23) / 10:
+                    if self.temperatures[y][x] > 40 and self.hydrations[y][x] < 0.3 and random.randint(0, 100) < 98:
+                        self.biomes[y][x] = 'desert'
+                    elif self.temperatures[y][x] < random.randint(12, 26) / 10:
                         self.biomes[y][x] = 'taiga'
                     elif self.temperatures[y][x] > random.randint(40, 55) / 10 and self.hydrations[y][x] > 0.85:
                         self.biomes[y][x] = 'rainforest'
                 elif self.biomes[y][x] == 'grass':
-                    if self.temperatures[y][x] < random.randint(5, 16) / 10:
+                    if self.temperatures[y][x] < random.randint(8, 21) / 10:
                         self.biomes[y][x] = 'tundra'
-                    elif random.randint(37, 50) / 10 < self.temperatures[y][x] and self.hydrations[y][x] < 0.2:
+                    elif random.randint(37, 50) / 10 < self.temperatures[y][x] and self.hydrations[y][x] < 0.275:
                         self.biomes[y][x] = 'desert'
 
                 if (self.biomes[y][x] == 'grass' or self.biomes[y][x] == 'desert' or self.biomes[y][x] == 'tundra') and\
                         self.elevations[y][x] > 5.5:
                     self.biomes[y][x] = 'mountain'
+                    if self.elevations[y][x] > 6.5:
+                        self.biomes[y][x] = 'summit'
 
         for y in range(0, self.rows):
             print(y)
             row = []
             for x in range(0, self.columns):
-                if self.elevations[y][x] < 0.5:
-                    fert = 0
-                elif self.elevations[y][x] < 1:
-                    fert = 0.9
-                elif self.elevations[y][x] > 4.5:
-                    fert = -(4.5 / self.elevations[y][x]) * 2
-                else:
-                    if self.biomes[y][x] == 'swamp' or self.biomes[y][x] == 'beach':
-                        fert = 0.2
-                    elif self.biomes[y][x] == 'river':
-                        fert = 0.7
-                    elif self.biomes[y][x] == 'desert':
-                        fert = 0.1
-                    else:
-                        fert = random.randint(60, 80) / random.randint(95, 120)
+                if self.biomes[y][x] == 'river':
+                    if self.hydrations[y][x] > 2.1:
+                        cc = 0
+                        ac = 0
+                        for c in range(0, 9):
+                            f = [(x - 1 + c % 3) % self.columns, (y - 1 + int(c / 3)) % self.rows]
+                            if self.biomes[f[1]][f[0]] == 'river':
+                                cc += 1
+                            elif self.biomes[f[1]][f[0]] == 'lake':
+                                ac += 1
+                            elif self.biomes[f[1]][f[0]] == 'coast':
+                                cc = 0
+                                ac = 0
+                                break
 
-                if 0.5 < self.temperatures[y][x] < 5 and self.biomes[y][x] != 'desert':
-                    fert *= (self.hydrations[y][x] / 3 + 1) * (self.temperatures[y][x] / 3 + 0.1) * random.randint(90, 110) / 100
+                        if ((cc == 0 or 1) and (ac == 0 or 1)):
+                            self.biomes[y][x] = 'lake'
+                        elif ac > 2 and cc > 4 and ac + cc > 6:
+                            self.biomes[y][x] = 'lake'
+                        elif ac > 3 and cc > 0 and ac + cc > 4:
+                            self.biomes[y][x] = 'lake'
+                        elif self.hydrations[y][x] > 2.3 and self.biomes[y][x] == 'river' and cc + ac > 2:
+                            self.biomes[y][x] = 'lake'
+
+                        if self.hydrations[y][x] > 2.7:
+                            self.biomes[y][x] = 'lake'
+
+                if self.biomes[y][x] == 'ocean':
+                    fertbio = 0
+                elif self.biomes[y][x] == 'coast':
+                    fertbio = 0.2
+                elif self.biomes[y][x] == 'trench':
+                    fertbio = 0
+                elif self.biomes[y][x] == 'grass':
+                    fertbio = 2.1
+                elif self.biomes[y][x] == 'tundra':
+                    fertbio = 1.2
+                elif self.biomes[y][x] == 'taiga':
+                    fertbio = 0.9
+                elif self.biomes[y][x] == 'forest':
+                    fertbio = 1.7
+                elif self.biomes[y][x] == 'reef':
+                    fertbio = 0.4
+                elif self.biomes[y][x] == 'rainforest':
+                    fertbio = 1.5
+                elif self.biomes[y][x] == 'desert':
+                    fertbio = 0.2
+                elif self.biomes[y][x] == 'swamp':
+                    fertbio = 0.22
+                elif self.biomes[y][x] == 'beach':
+                    fertbio = 0.1
+                elif self.biomes[y][x] == 'mountain' or self.biomes[y][x] == 'summit':
+                    fertbio = max(0, 1.1 - (self.elevations[y][x] - 5) / 100)
                 else:
-                    fert *= (self.hydrations[y][x] / 3 + 1) * random.randint(90, 110) / 100
-                row.append(fert)
+                    fertbio = 1.6
+
+                fertbio *= random.randint(5, 11) / 10
+
+                fertbio = max(0, int((fertbio * (
+                            1.25 + random.randint(0, 12) / 20 - max(0, (self.elevations[y][x] + 1) / 3.5) / 2)) ** 2))
+                if self.biomes != 'coast' and self.biomes != 'ocean':
+                    fertbio += max(0.1, self.hydrations[y][x]) ** 2 / 6
+                if fertbio < 0.01:
+                    fertbio = 0
+
+                row.append(max(0, fertbio))
             self.fertilities[y] = row
 
         for p in range(0, 2):
@@ -812,9 +892,9 @@ class Map:
                                     a = pygame.Surface((VIEWSCALE, VIEWSCALE))
                                     pygame.event.get()
                                     el = self.biomes[y][x]
-                                    if el == 'ocean':
+                                    if el == 'ocean' or el == 'river':
                                         color = (0, 0, 255)
-                                    elif el == 'coast':
+                                    elif el == 'coast' or el == 'lake':
                                         color = (0, 70, 200)
                                     elif el == 'beach':
                                         color = (200, 200, 0)
@@ -824,18 +904,16 @@ class Map:
                                         color = (30, 200, 40)
                                     elif el == 'mountain':
                                         color = (150, 150, 150)
-                                    elif el == 'river':
-                                        color = (0, 0, 255)
                                     elif el == 'forest':
-                                        color = (10, 60, 10)
-                                    elif el == 'tundra':
+                                        color = (22, 100, 10)
+                                    elif el == 'tundra' or el == 'summit':
                                         color = (255, 255, 255)
                                     elif el == 'taiga':
                                         color = (170, 255, 200)
                                     elif el == 'desert':
                                         color = (150, 200, 30)
                                     elif el == 'rainforest':
-                                        color = (10, 60, 0)
+                                        color = (10, 40, 0)
                                     else:
                                         color = [0, 0, 0]
 
@@ -847,11 +925,13 @@ class Map:
                                     a = pygame.Surface((VIEWSCALE, VIEWSCALE))
                                     pygame.event.get()
                                     el = self.fertilities[y][x]
-                                    if el > 0:
-                                        color = [0, min(255, (el + 3) / 6 * 255), 0]
+
+                                    if el >= 0:
+                                        value = 255 - min(255, max(0, el) / 9 * 255)
+                                        color = (value, 255, value)
                                     else:
-                                        print([x, y])
-                                        color = [0, 0, 0]
+                                        value = 255 - min(255, max(0, -el) / 5 * 255)
+                                        color = (value, value, value)
 
                                     a.fill(color)
                                     self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
