@@ -57,6 +57,7 @@ class Map:
             self.biomes.append(row5)
 
         self.ecolyze()
+        self.namificationize()
         if __name__ == '__main__':
             self.view()
 
@@ -237,14 +238,16 @@ class Map:
             self.elevations[spot[1]][spot[0]] += 0.4
             if random.randint(0, 100) < 82:
                 if random.randint(0, 100) < 78:
-                    self.elevations[spot[1] % self.rows][(spot[0] - 1) % self.columns] += 0.06 / max(1, self.tilecount / 11000)
+                    self.elevations[spot[1] % self.rows][(spot[0] - 1) % self.columns] += 0.06 / max(1,
+                                                                                                     self.tilecount / 11000)
                     '''if 0 < spot[0]:
                         self.elevations[spot[1]][spot[0] - 1] += 0.06 / max(1, self.tilecount / 11000)
                     else:
                         self.elevations[spot[1]][self.columns - 1] += 0.06 / max(1, self.tilecount / 11000)'''
 
                 if random.randint(0, 100) < 78:
-                    self.elevations[spot[1] % self.rows][(spot[0] + 1) % self.columns] += 0.06 / max(1, self.tilecount / 11000)
+                    self.elevations[spot[1] % self.rows][(spot[0] + 1) % self.columns] += 0.06 / max(1,
+                                                                                                     self.tilecount / 11000)
                     '''if spot[0] < self.columns - 1:
                         self.elevations[spot[1]][spot[0] + 1] += 0.06 / max(1, self.tilecount / 11000)
                     else:
@@ -317,7 +320,8 @@ class Map:
                     else:
                         if p < random.choice([3, 4, 4, 2, 4, 4, 3, 4, 4]):
                             try:
-                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][int((x - x % 2) / 2) + 1]) / 20 * random.randint(8, 12))
+                                row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][
+                                    int((x - x % 2) / 2) + 1]) / 20 * random.randint(8, 12))
                             except IndexError:
                                 row.append((small_elev[y][int((x - x % 2) / 2)] + small_elev[y][
                                     0] / 10 * random.randint(8, 12)))
@@ -591,7 +595,9 @@ class Map:
                     for i in range(-50, 50):
                         if self.hydrations[(y + j) % self.rows][(x + i) % self.columns] < 1:
                             try:
-                                self.hydrations[(y + j) % self.rows][(x + i) % self.columns] += 1 / (get_distance([x, y], [x + i, y + j]) ** (random.randint(23, 40) / random.randint(9, 17)))
+                                self.hydrations[(y + j) % self.rows][(x + i) % self.columns] += 1 / (
+                                            get_distance([x, y], [x + i, y + j]) ** (
+                                                random.randint(23, 40) / random.randint(9, 17)))
                             except ZeroDivisionError:
                                 pass
 
@@ -614,7 +620,8 @@ class Map:
                 elif self.elevations[y][x] < 1:
                     albedo = 1.2
                 else:
-                    albedo = (random.randint(14, 17) / 10) * 2 * self.elevations[y][x] * random.randint(990, 1110) / 1000
+                    albedo = (random.randint(14, 17) / 10) * 2 * self.elevations[y][x] * random.randint(990,
+                                                                                                        1110) / 1000
 
                 temp = (-12 * distance + 5 + 2 / albedo) * 1.23
 
@@ -652,7 +659,7 @@ class Map:
                 for x in range(-int(self.maxseeddistance / random.randint(13, 17) * strength),
                                int(self.maxseeddistance / random.randint(13, 17) * strength)):
                     a = [b[0] + x, b[1] + y]
-                    if (self.biomes[a[1] % self.rows][a[0] % self.columns] == 'none' and random.randint(0, 100) < 85) or\
+                    if (self.biomes[a[1] % self.rows][a[0] % self.columns] == 'none' and random.randint(0, 100) < 85) or \
                             random.randint(0, 100) < 20:
                         self.biomes[a[1] % self.rows][a[0] % self.columns] = t
 
@@ -697,7 +704,8 @@ class Map:
                             self.biomes[y][x] = 'lake'
                 elif self.elevations[y][x] < 1.36 and self.hydrations[y][x] > 1.5:
                     self.biomes[y][x] = 'swamp'
-                elif (not self.checkcoastlocked(x, y) and (not self.checklandlocked(x, y) or random.randint(0, 100) < 38)) and\
+                elif (not self.checkcoastlocked(x, y) and (
+                        not self.checklandlocked(x, y) or random.randint(0, 100) < 38)) and \
                         self.elevations[y][x] < 1.2 and self.hydrations[y][x] < 1.5:
                     self.biomes[y][x] = 'beach'
 
@@ -717,11 +725,13 @@ class Map:
                     elif random.randint(37, 50) / 10 < self.temperatures[y][x] and self.hydrations[y][x] < 0.275:
                         self.biomes[y][x] = 'desert'
 
-                if (self.biomes[y][x] == 'grass' or self.biomes[y][x] == 'desert' or self.biomes[y][x] == 'tundra') and\
+                if (self.biomes[y][x] == 'grass' or self.biomes[y][x] == 'desert' or self.biomes[y][x] == 'tundra') and \
                         self.elevations[y][x] > 5.5:
                     self.biomes[y][x] = 'mountain'
                     if self.elevations[y][x] > 6.5:
                         self.biomes[y][x] = 'summit'
+                        if self.elevations[y][x] > 7.5:
+                            self.biomes[y][x] = 'peak'
 
         for y in range(0, self.rows):
             print(y)
@@ -748,11 +758,28 @@ class Map:
                             self.biomes[y][x] = 'lake'
                         elif ac > 3 and cc > 0 and ac + cc > 4:
                             self.biomes[y][x] = 'lake'
+                        elif ac + cc > 6:
+                            self.biomes[y][x] = 'lake'
                         elif self.hydrations[y][x] > 2.3 and self.biomes[y][x] == 'river' and cc + ac > 2:
                             self.biomes[y][x] = 'lake'
-
-                        if self.hydrations[y][x] > 2.7:
+                        elif self.hydrations[y][x] > 3:
                             self.biomes[y][x] = 'lake'
+                elif self.biomes[y][x] == 'desert':
+                    cc = 0
+                    for c in range(0, 9):
+                        f = [(x - 1 + c % 3) % self.columns, (y - 1 + int(c / 3)) % self.rows]
+                        if self.biomes[f[1]][f[0]] == 'desert':
+                            cc += 1
+
+                    if 9 > cc > 6:
+                        ac = 0
+                        for c in range(0, 9):
+                            f = [(x - 1 + c % 3) % self.columns, (y - 1 + int(c / 3)) % self.rows]
+                            if self.biomes[f[1]][f[0]] == 'forest' and random.randint(0, 100) < 96:
+                                self.biomes[f[1]][f[0]] = random.choice(
+                                    ['grass', 'grass', 'desert', 'desert', 'desert', 'desert', 'desert'])
+                            elif self.biomes[f[1]][f[0]] == 'grass' and random.randint(0, 100) < 74:
+                                self.biomes[f[1]][f[0]] = 'desert'
 
                 if self.biomes[y][x] == 'ocean':
                     fertbio = 0
@@ -786,7 +813,7 @@ class Map:
                 fertbio *= random.randint(5, 11) / 10
 
                 fertbio = max(0, int((fertbio * (
-                            1.25 + random.randint(0, 12) / 20 - max(0, (self.elevations[y][x] + 1) / 3.5) / 2)) ** 2))
+                        1.25 + random.randint(0, 12) / 20 - max(0, (self.elevations[y][x] + 1) / 3.5) / 2)) ** 2))
                 if self.biomes != 'coast' and self.biomes != 'ocean':
                     fertbio += max(0.1, self.hydrations[y][x]) ** 2 / 6
                 if fertbio < 0.01:
@@ -802,6 +829,174 @@ class Map:
                         self.fertilities[y][x] = (self.fertilities[y][x - 1] + self.fertilities[y][x + 1] +
                                                   self.fertilities[y - 1][x] +
                                                   self.fertilities[y + 1][x]) / random.randint(36, 44) * 10
+
+    def gen_name(self):
+        consonants = ['b', 'c', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'p', 'q', 'r', 's', 's', 't',
+                      't', 'v', 'w', 'x', 'y', 'z', 'z']
+        vowels = ['a', 'e', 'i', 'o', 'u', 'y']
+
+        syllables = []
+        word = ""
+        for _ in range(0, random.randint(1, 5)):
+            syl = ""
+            if word == "":
+                if random.randint(0, 100) < 35:
+                    syl += random.choice(vowels)
+
+                    if syl[0] == 'a' and random.randint(0, 100) < 32:
+                        syl += random.choice(['e', 'u'])
+                    elif syl[0] == 'e' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i', 'u'])
+                    elif syl[0] == 'o' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i', 'u', 'y'])
+                    elif syl[0] == 'u' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i'])
+                    elif syl[0] != 'y':
+                        syl += syl[0]
+
+                else:
+                    syl += random.choice(consonants)
+
+                    if (syl[0] == 'c' or 'p' or 's' or 'z' or 't' or 'g' or 'k') and random.randint(0, 100) < 40:
+                        syl += 'h'
+                    elif syl[0] == 'q':
+                        syl += 'u'
+
+                    syl += random.choice(vowels)
+
+                    if syl[-1] == 'a' and random.randint(0, 100) < 32:
+                        syl += random.choice(['e', 'u'])
+                    elif syl[-1] == 'e' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i', 'u'])
+                    elif syl[-1] == 'o' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i', 'u', 'y'])
+                    elif syl[-1] == 'u' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i'])
+                    elif syl[-1] != 'y':
+                        syl += syl[-1]
+            else:
+                if syllables[-1][-1] in consonants:
+                    syl += random.choice(vowels)
+
+                    if syl[0] == 'a' and random.randint(0, 100) < 32:
+                        syl += random.choice(['e', 'u'])
+                    elif syl[0] == 'e' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i', 'u'])
+                    elif syl[0] == 'o' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i', 'u', 'y'])
+                    elif syl[0] == 'u' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i'])
+                    elif syl[0] != 'y':
+                        syl += syl[0]
+
+                else:
+                    syl += random.choice(consonants)
+
+                    if (syl[0] == 'c' or 'p' or 's' or 'z' or 't' or 'g' or 'k') and random.randint(0, 100) < 40:
+                        syl += 'h'
+                    elif syl[0] == 'q':
+                        syl += 'u'
+                    elif syl[0] == 'n' and random.randint(0, 100) < 11:
+                        syl += 'g'
+                    elif (syl[0] == 'l' or 'g' or 't' or 'c' or 's' or 'd' or 'f' or 'z' or 'b' or 'n' or 'm') and \
+                            random.randint(0, 100) < 15:
+                        syl += syl[-1]
+
+                    syl += random.choice(vowels)
+
+                    if syl[-1] == 'a' and random.randint(0, 100) < 32:
+                        syl += random.choice(['e', 'u'])
+                    elif syl[-1] == 'e' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i', 'u'])
+                    elif syl[-1] == 'o' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i', 'u', 'y'])
+                    elif syl[-1] == 'u' and random.randint(0, 100) < 20:
+                        syl += random.choice(['a', 'i'])
+                    elif syl[-1] != 'y':
+                        syl += syl[-1]
+            syllables.append(syl)
+
+        for s in syllables:
+            word += s
+
+        return word
+
+    def namificationize(self):
+        self.all_names = ['Unknown']
+        self.toponymy = []
+
+        for y in range(0, self.rows):
+            row = []
+            for x in range(0, self.columns):
+                row.append(0)
+            self.toponymy.append(row)
+
+        placecounter = 0
+        for y in range(0, self.rows):
+            for x in range(0, self.columns):
+                print(placecounter)
+                if self.toponymy[y][x] == 0:
+                    placetype = self.biomes[y][x]
+                    cc = 0
+                    for c in range(0, 9):
+                        f = [(x - 1 + c % 3) % self.columns, (y - 1 + int(c / 3)) % self.rows]
+                        alpha = self.biomes[f[1]][f[0]]
+                        if alpha == placetype:
+                            cc += 1
+
+                    if cc > 1 or random.randint(0, 30) < 1:
+                        placecounter += 1
+                        self.toponymy[y][x] = placecounter
+                        size = 0
+                        allinplace = [[x, y]]
+
+                        if placetype == 'ocean':
+                            multiplier = 200
+                        elif placetype == 'coast':
+                            multiplier = 25
+                        elif placetype == 'forest' or 'rainforest' or 'taiga':
+                            multiplier = 3
+                        elif placetype == 'grass' or 'tundra':
+                            multiplier = 6
+                        elif placetype == 'desert':
+                            multiplier = 3
+                        elif placetype == 'mountain':
+                            multiplier = 2
+                        elif placetype == 'peak' or 'summit':
+                            multiplier = 2
+                        else:
+                            multiplier = 1
+
+                        obsession = 0
+                        nextt = [x, y]
+                        availablenext = []
+                        self.all_names.append((self.gen_name() + placetype).title())
+
+                        while size < 3600 * multiplier and obsession < min(175 * multiplier, 35000):
+                            print(">", placecounter)
+                            if random.randint(0, 100) < 2:
+                                expando = True
+                            else:
+                                expando = False
+                            for c in range(0, 9):
+                                f = [(nextt[0] - 1 + c % 3) % self.columns, (nextt[1] - 1 + int(c / 3)) % self.rows]
+                                if self.biomes[f[1]][f[0]] == placetype and f not in allinplace and (self.toponymy[f[1]][f[0]] == 0 or expando):
+                                    allinplace.append(f)
+                                    availablenext.append(f)
+                                    self.toponymy[f[1]][f[0]] = placecounter
+                                    size += 1
+                                    obsession -= random.choice([2, 2, 2, 4, 4, 5, 5, 5, 6, 9])
+                                else:
+                                    obsession += 1
+                            try:
+                                nextt = random.choice(availablenext)
+                                availablenext.remove(nextt)
+                            except IndexError:
+                                pass
+                    else:
+                        self.toponymy[y][x] = random.choice([self.toponymy[(x + self.columns - 1) % self.columns][y], self.toponymy[max(0, y - 1)][x]])
+
+
 
     def view(self):
         self.scr = pygame.display.set_mode((int(self.columns * VIEWSCALE), int(self.rows * VIEWSCALE)))
@@ -838,7 +1033,7 @@ class Map:
                     if 4 >= slider >= 0:
                         if e.key == pygame.K_LEFT and 0 < slider:
                             slider -= 1
-                        elif e.key == pygame.K_RIGHT and slider < 4:
+                        elif e.key == pygame.K_RIGHT and slider < 5:
                             slider += 1
 
                         if slider == 0:
@@ -886,7 +1081,7 @@ class Map:
 
                                     a.fill(color)
                                     self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
-                        elif slider == 3:
+                        elif slider == 4:
                             for y in range(0, self.rows):
                                 for x in range(0, self.columns):
                                     a = pygame.Surface((VIEWSCALE, VIEWSCALE))
@@ -904,9 +1099,11 @@ class Map:
                                         color = (30, 200, 40)
                                     elif el == 'mountain':
                                         color = (150, 150, 150)
+                                    elif el == 'summit':
+                                        color = (202, 202, 202)
                                     elif el == 'forest':
                                         color = (22, 100, 10)
-                                    elif el == 'tundra' or el == 'summit':
+                                    elif el == 'tundra' or el == 'peak':
                                         color = (255, 255, 255)
                                     elif el == 'taiga':
                                         color = (170, 255, 200)
@@ -919,7 +1116,7 @@ class Map:
 
                                     a.fill(color)
                                     self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
-                        elif slider == 4:
+                        elif slider == 3:
                             for y in range(0, self.rows):
                                 for x in range(0, self.columns):
                                     a = pygame.Surface((VIEWSCALE, VIEWSCALE))
@@ -935,6 +1132,24 @@ class Map:
 
                                     a.fill(color)
                                     self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
+                        elif slider == 5:
+                            highlightcolors = [(100, 100, 100), (255, 255, 255), (255, 0, 0), (255, 255, 0),
+                                               (0, 255, 0), (0, 255, 255), (0, 0, 255), (100, 0, 0), (100, 100, 0),
+                                               (0, 100, 0), (0, 100, 100), (0, 0, 100), (50, 0, 0), (50, 50, 0),
+                                               (0, 50, 0), (0, 50, 50), (0, 0, 50), (200, 0, 0), (200, 200, 0),
+                                               (0, 200, 0), (0, 200, 200), (0, 0, 200)]
+                            for y in range(0, self.rows):
+                                for x in range(0, self.columns):
+                                    a = pygame.Surface((VIEWSCALE, VIEWSCALE))
+                                    pygame.event.get()
+                                    el = self.toponymy[y][x]
+                                    if el == 0:
+                                        color = (0, 0, 0)
+                                    else:
+                                        color = highlightcolors[el % len(highlightcolors)]
+
+                                    a.fill(color)
+                                    self.scr.blit(a, (x * VIEWSCALE, y * VIEWSCALE))
 
             if slider == 0:
                 subject = self.elevations
@@ -947,12 +1162,19 @@ class Map:
             elif slider == 4:
                 subject = self.fertilities
             elif slider == 5:
-                subject = [[0, 0]]
+                subject = self.toponymy
 
-            pygame.display.set_caption(str(((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE,
-                                            (self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)) +
-                                       str(subject[int((self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)]
-                                           [int((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE)]))
+            if slider != 5:
+                pygame.display.set_caption(str(((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE,
+                                                (self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)) +
+                                           str(subject[int((self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)]
+                                               [int((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE)]))
+            else:
+                pygame.display.set_caption(str(((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE,
+                                                (self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)) +
+                                           self.all_names[
+                                               subject[int((self.drivf[1] - self.drivf[1] % VIEWSCALE) / VIEWSCALE)]
+                                               [int((self.drivf[0] - self.drivf[0] % VIEWSCALE) / VIEWSCALE)]])
             pygame.display.flip()
             time.sleep(0.1)
 
